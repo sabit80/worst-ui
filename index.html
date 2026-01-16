@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ChronoCatch - High Performance Alarm UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoCatch - The Alarm Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -11,8 +11,11 @@
             --primary: #6C63FF;
             --secondary: #FF6584;
             --accent: #43D9AD;
-            --glass: rgba(255, 255, 255, 0.12);
-            --glass-border: rgba(255, 255, 255, 0.2);
+            --dark: #2F2E41;
+            --light: #F9FAFB;
+            --glass: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         }
 
         * {
@@ -21,40 +24,53 @@
             box-sizing: border-box;
             font-family: 'Nunito', sans-serif;
             user-select: none;
-            touch-action: none; /* Critical for multi-touch dragging */
+            -webkit-user-select: none;
         }
 
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(45deg, #2c3e50, #4ca1af);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             height: 100vh;
             overflow: hidden;
             color: white;
         }
 
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         /* --- UI Elements --- */
         .glass-panel {
             background: var(--glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
         }
 
+        /* Header */
         .game-header {
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 12px 40px;
+            padding: 15px 40px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
             z-index: 1000;
         }
 
         .time-display {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 900;
-            letter-spacing: 4px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
             font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
         }
 
         /* Jars */
@@ -67,45 +83,67 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            touch-action: none; /* Prevents browser intercepting drag */
+            transition: transform 0.1s;
+        }
+
+        .draggable-jar:active {
+            cursor: grabbing;
+            transform: scale(1.05);
         }
 
         .jar-body {
             width: 120px;
             height: 160px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             border-top: none;
             border-radius: 0 0 50px 50px;
             position: relative;
             overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.1), 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Rim of the jar */
+        .jar-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
         }
 
         .jar-label {
-            margin-bottom: 8px;
-            padding: 4px 16px;
+            margin-bottom: 10px;
+            padding: 5px 15px;
             border-radius: 20px;
-            font-weight: 900;
+            font-weight: 800;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            font-size: 0.8rem;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .label-hour { background: var(--secondary); }
-        .label-minute { background: var(--accent); color: #1a1a2e; }
+        .label-hour { background: var(--secondary); color: white; }
+        .label-minute { background: var(--accent); color: #0f4c3a; }
 
         .jar-counter {
             position: absolute;
             bottom: -15px;
             background: white;
-            color: #1a1a2e;
-            width: 44px;
-            height: 44px;
+            color: var(--dark);
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 3px solid rgba(255,255,255,0.5);
         }
 
         .jar-content {
@@ -115,9 +153,12 @@
             display: flex;
             flex-wrap: wrap-reverse;
             justify-content: center;
+            align-content: flex-start;
             padding: 10px;
+            padding-bottom: 20px;
             gap: 2px;
             height: 100%;
+            pointer-events: none;
         }
 
         /* Balls */
@@ -125,18 +166,32 @@
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.3);
+            box-shadow: inset -3px -3px 5px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .ball::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.6);
         }
 
         .ball-hour { background: radial-gradient(circle at 30% 30%, #ff8fa3, #ff4772); }
         .ball-minute { background: radial-gradient(circle at 30% 30%, #7bf1cc, #2bcfa5); }
 
+        /* Falling Balls */
         .falling-ball {
-            position: fixed;
+            position: fixed; /* Using fixed for smooth transform movement */
             border-radius: 50%;
             pointer-events: none;
             z-index: 50;
-            will-change: transform;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            will-change: transform; /* Performance optimization */
         }
 
         /* Screens */
@@ -151,28 +206,43 @@
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            background: #1a1a2e;
+            background: rgba(20, 20, 30, 0.95);
+            transition: opacity 0.5s;
         }
 
         .hidden { display: none; }
 
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 15px rgba(255, 94, 98, 0.3);
+        }
+
+        p { font-size: 1.2rem; margin-bottom: 40px; color: #ccc; max-width: 600px; text-align: center; line-height: 1.6;}
+
         .btn {
-            padding: 18px 40px;
+            padding: 18px 45px;
+            font-size: 1.2rem;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            font-weight: 900;
+            font-weight: 800;
             text-transform: uppercase;
-            transition: 0.3s;
-            margin-top: 20px;
+            letter-spacing: 2px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
         .btn-primary { background: white; color: var(--primary); }
-        .btn-primary:hover { transform: scale(1.05); }
+        .btn-primary:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
 
+        /* Controls */
         .controls {
             position: fixed;
-            bottom: 40px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -180,20 +250,42 @@
             z-index: 1000;
         }
 
+        .btn-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            padding: 0;
+        }
+        
+        .btn-danger { background: var(--secondary); color: white; }
+        .btn-success { background: var(--accent); color: #0f4c3a; }
+
+        /* Animations */
         @keyframes pop {
             0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+            50% { transform: scale(1.4); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
         }
         .pop-anim { animation: pop 0.4s ease-out forwards; }
 
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .draggable-jar { width: 100px; height: 160px; }
+            .jar-body { width: 90px; height: 130px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="start-screen" class="screen">
-        <h1 style="font-size: 3.5rem; margin-bottom: 10px;">ChronoCatch</h1>
-        <p style="color: #888; margin-bottom: 30px;">Catch the time. Don't be late.</p>
-        <button class="btn btn-primary" onclick="startGame()">Start Game</button>
+        <i class="fas fa-hourglass-half" style="font-size: 4rem; color: #ff9966; margin-bottom: 20px;"></i>
+        <h1>ChronoCatch</h1>
+        <p>Drag the jars to catch the falling time orbs.<br>Red is Hours. Green is Minutes.</p>
+        <button class="btn btn-primary" onclick="startGame()">Start Catching</button>
     </div>
 
     <div id="game-ui" class="hidden">
@@ -203,38 +295,48 @@
 
         <div id="game-area"></div>
 
-        <div class="draggable-jar" id="jar-hour" style="top: 250px; left: 100px;">
-            <div class="jar-label label-hour">Hours</div>
-            <div class="jar-body"><div class="jar-content" id="content-hour"></div></div>
+        <div class="draggable-jar" id="jar-hour" style="top: 200px; left: 15%;">
+            <div class="jar-label label-hour">Hour</div>
+            <div class="jar-body">
+                <div class="jar-content" id="content-hour"></div>
+            </div>
             <div class="jar-counter" id="count-hour">0</div>
         </div>
 
-        <div class="draggable-jar" id="jar-minute" style="top: 250px; right: 100px;">
-            <div class="jar-label label-minute">Minutes</div>
-            <div class="jar-body"><div class="jar-content" id="content-minute"></div></div>
+        <div class="draggable-jar" id="jar-minute" style="top: 200px; right: 15%;">
+            <div class="jar-label label-minute">Minute</div>
+            <div class="jar-body">
+                <div class="jar-content" id="content-minute"></div>
+            </div>
             <div class="jar-counter" id="count-minute">0</div>
         </div>
 
         <div class="controls">
-            <button class="btn btn-primary" style="background: var(--secondary); color: white;" onclick="resetGame()">Reset</button>
-            <button class="btn btn-primary" style="background: var(--accent); color: #1a1a2e;" onclick="finishGame()">Set Alarm</button>
+            <button class="btn btn-danger btn-icon" onclick="resetGame()" title="Reset">
+                <i class="fas fa-undo"></i>
+            </button>
+            <button class="btn btn-success" onclick="finishGame()">
+                Set Alarm <i class="fas fa-check" style="margin-left: 10px;"></i>
+            </button>
         </div>
     </div>
 
     <div id="result-screen" class="screen hidden">
-        <h1 style="color: var(--accent);">Alarm Set!</h1>
-        <div class="glass-panel" style="padding: 20px 60px; margin: 20px 0;">
+        <h1>Alarm Set</h1>
+        <div class="glass-panel" style="padding: 20px 60px; margin-bottom: 30px;">
             <span class="time-display" id="final-time">00:00</span>
         </div>
-        <button class="btn btn-primary" onclick="location.reload()">Reset Everything</button>
+        <p>You have successfully set your alarm.<br>Good luck waking up.</p>
+        <button class="btn btn-primary" onclick="location.reload()">New Alarm</button>
     </div>
 
     <script>
+        // --- State Management ---
         const state = {
             hours: 0,
             minutes: 0,
             isPlaying: false,
-            balls: [], 
+            balls: [], // Stores active falling balls objects { x, y, speed, el, type }
             lastFrameTime: 0,
             spawnTimer: 0
         };
@@ -250,121 +352,144 @@
             gameArea: document.getElementById('game-area')
         };
 
+        // --- Game Loop (The Engine) ---
         function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('game-ui').classList.remove('hidden');
             state.isPlaying = true;
-            resetGame(); // Ensure zero start
             
+            // Start the optimized animation loop
+            requestAnimationFrame(gameLoop);
+            
+            // Initialize drag functionality
             initDraggable(els.hourJar);
             initDraggable(els.minuteJar);
-            requestAnimationFrame(gameLoop);
         }
 
         function gameLoop(timestamp) {
             if (!state.isPlaying) return;
+
+            // Calculate delta time for consistent speed across framerates
             const deltaTime = timestamp - state.lastFrameTime;
             state.lastFrameTime = timestamp;
 
+            // 1. Spawner Logic
             state.spawnTimer += deltaTime;
-            if (state.spawnTimer > 500) { 
+            if (state.spawnTimer > 600) { // Spawn every 600ms
                 spawnBall();
                 state.spawnTimer = 0;
             }
 
+            // 2. Physics & Logic Update
             updateBalls();
+
             requestAnimationFrame(gameLoop);
         }
 
-        // --- Multi-Touch Multi-Jar Support ---
-        function initDraggable(el) {
-            let offsetX, offsetY, activeId = null;
-
-            el.addEventListener('pointerdown', (e) => {
-                if (activeId !== null) return;
-                activeId = e.pointerId;
-                el.setPointerCapture(e.pointerId);
-                
-                const rect = el.getBoundingClientRect();
-                offsetX = e.clientX - rect.left;
-                offsetY = e.clientY - rect.top;
-                el.style.zIndex = 1000;
-            });
-
-            el.addEventListener('pointermove', (e) => {
-                if (e.pointerId !== activeId) return;
-                el.style.left = `${e.clientX - offsetX}px`;
-                el.style.top = `${e.clientY - offsetY}px`;
-            });
-
-            const stop = (e) => {
-                if (e.pointerId !== activeId) return;
-                el.releasePointerCapture(e.pointerId);
-                activeId = null;
-                el.style.zIndex = 100;
-            };
-
-            el.addEventListener('pointerup', stop);
-            el.addEventListener('pointercancel', stop);
-        }
-
         function spawnBall() {
-            const isHour = Math.random() > 0.6;
-            const el = document.createElement('div');
-            el.className = `falling-ball ${isHour ? 'ball-hour' : 'ball-minute'}`;
-            const size = 25;
-            el.style.width = el.style.height = `${size}px`;
+            const isHour = Math.random() > 0.6; // 40% chance of hour ball
+            const type = isHour ? 'hour' : 'minute';
+            const size = Math.random() * 15 + 20; // 20px to 35px
             
-            const x = Math.random() * (window.innerWidth - size);
+            const el = document.createElement('div');
+            el.classList.add('falling-ball', isHour ? 'ball-hour' : 'ball-minute');
+            el.style.width = `${size}px`;
+            el.style.height = `${size}px`;
+            
+            // Random start X position (keeping within screen bounds)
+            const startX = Math.random() * (window.innerWidth - 50);
+            
+            // Add to DOM
             els.gameArea.appendChild(el);
 
+            // Add to state array
             state.balls.push({
-                el, x, y: -50,
-                vy: Math.random() * 3 + 3,
-                type: isHour ? 'hour' : 'minute',
+                el: el,
+                x: startX,
+                y: -50,
+                vx: (Math.random() - 0.5) * 1.5, // Horizontal drift
+                vy: Math.random() * 2 + 2,       // Vertical speed
+                type: type,
                 caught: false
             });
         }
 
         function updateBalls() {
-            const hRect = els.hourJar.getBoundingClientRect();
-            const mRect = els.minuteJar.getBoundingClientRect();
+            const hourRect = els.hourJar.getBoundingClientRect();
+            const minuteRect = els.minuteJar.getBoundingClientRect();
 
+            // Loop backwards so we can remove items safely
             for (let i = state.balls.length - 1; i >= 0; i--) {
                 const b = state.balls[i];
-                if (b.caught) continue;
 
+                if (b.caught) continue; // Skip if already processing a catch
+
+                // Move ball
                 b.y += b.vy;
+                b.x += b.vx;
+
+                // Apply DOM transform (High Performance)
                 b.el.style.transform = `translate3d(${b.x}px, ${b.y}px, 0)`;
 
+                // 1. Check if off screen
                 if (b.y > window.innerHeight) {
                     b.el.remove();
                     state.balls.splice(i, 1);
                     continue;
                 }
 
-                const rect = b.type === 'hour' ? hRect : mRect;
-                if (b.x > rect.left && b.x < rect.right && b.y > rect.top && b.y < rect.bottom) {
-                    catchBall(i, b.type);
+                // 2. Collision Detection
+                // Check Hour Jar
+                if (b.type === 'hour' && isColliding(b, hourRect)) {
+                    catchBall(i, 'hour');
+                }
+                // Check Minute Jar
+                else if (b.type === 'minute' && isColliding(b, minuteRect)) {
+                    catchBall(i, 'minute');
                 }
             }
         }
 
+        function isColliding(ball, jarRect) {
+            // Simple AABB collision with a little forgiveness (padding)
+            // jarRect is the whole draggable area, we want the "mouth" ideally, 
+            // but hitting the jar body is fine for this game feel.
+            const ballSize = 30; 
+            return (
+                ball.x > jarRect.left &&
+                ball.x < jarRect.right &&
+                ball.y > jarRect.top &&
+                ball.y < jarRect.bottom
+            );
+        }
+
         function catchBall(index, type) {
             const b = state.balls[index];
-            b.caught = true;
+            b.caught = true; // Prevent double counting
+            
+            // Add visual pop effect at current location
             b.el.classList.add('pop-anim');
             
-            if (type === 'hour') state.hours = (state.hours + 1) % 24;
-            else state.minutes = (state.minutes + 1) % 60;
+            // Update Logic
+            if (type === 'hour') {
+                if (state.hours < 23) state.hours++;
+                else state.hours = 0; // Loop 24h
+            } else {
+                if (state.minutes < 59) state.minutes++;
+                else {
+                    state.minutes = 0;
+                    // Optional: increment hour if minute loops? Nah, harder is better.
+                }
+            }
 
             updateDisplay();
-            
-            const ball = document.createElement('div');
-            ball.className = `ball ${type === 'hour' ? 'ball-hour' : 'ball-minute'}`;
-            (type === 'hour' ? els.hourContent : els.minuteContent).appendChild(ball);
+            updateJarVisuals(type);
 
-            setTimeout(() => b.el.remove(), 400);
+            // Remove from array after animation plays briefly
+            setTimeout(() => {
+                if(b.el && b.el.parentNode) b.el.remove();
+            }, 400);
+            
             state.balls.splice(index, 1);
         }
 
@@ -374,6 +499,20 @@
             els.clock.textContent = `${h}:${m}`;
             els.hourCount.textContent = state.hours;
             els.minuteCount.textContent = state.minutes;
+        }
+
+        function updateJarVisuals(type) {
+            const container = type === 'hour' ? els.hourContent : els.minuteContent;
+            
+            // Add a static ball to the jar pile
+            const ball = document.createElement('div');
+            ball.className = `ball ${type === 'hour' ? 'ball-hour' : 'ball-minute'}`;
+            container.appendChild(ball);
+
+            // If too many balls, remove old ones to prevent DOM lag (just visual)
+            if (container.children.length > 30) {
+                container.removeChild(container.firstChild);
+            }
         }
 
         function resetGame() {
@@ -388,7 +527,59 @@
             state.isPlaying = false;
             document.getElementById('game-ui').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
-            document.getElementById('final-time').textContent = els.clock.textContent;
+            
+            const h = state.hours.toString().padStart(2, '0');
+            const m = state.minutes.toString().padStart(2, '0');
+            document.getElementById('final-time').textContent = `${h}:${m}`;
+        }
+
+        // --- Draggable Logic (Touch & Mouse) ---
+        function initDraggable(el) {
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+
+            const start = (e) => {
+                isDragging = true;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                startX = clientX;
+                startY = clientY;
+                
+                const rect = el.getBoundingClientRect();
+                // We use style.left/top because we need persistent position
+                // If not set yet, use rect
+                initialLeft = el.offsetLeft; 
+                initialTop = el.offsetTop;
+                
+                el.style.zIndex = 1000;
+                e.preventDefault(); // Prevent scrolling on touch
+            };
+
+            const move = (e) => {
+                if (!isDragging) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                
+                el.style.left = `${initialLeft + dx}px`;
+                el.style.top = `${initialTop + dy}px`;
+            };
+
+            const end = () => {
+                isDragging = false;
+                el.style.zIndex = 100;
+            };
+
+            el.addEventListener('mousedown', start);
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', end);
+
+            el.addEventListener('touchstart', start, {passive: false});
+            window.addEventListener('touchmove', move, {passive: false});
+            window.addEventListener('touchend', end);
         }
     </script>
 </body>
